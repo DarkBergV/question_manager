@@ -2,6 +2,7 @@ import requests
 import tkinter as tk
 import psycopg2
 from tkinter import ttk, Label
+from datetime import datetime
 
 from private_data import API_KEY,con
 
@@ -21,15 +22,27 @@ class QuestionApp:
         self.correct = [
             "a","b","c","d","e"
         ]
+
         self.selected_option = tk.StringVar(self.root)
         self.selected_option.set(self.correct[0])
 
-        self.drop = tk.OptionMenu(root, self.selected_option, *self.correct)
-        self.drop.pack()
+        self.type = [
+            "microsoft","word","excel", "email", "internet"
+        ]
+        self.selected_type = tk.StringVar(self.root)
+        self.selected_type.set(self.type[0])
+
+        self.drop_type = tk.OptionMenu(root, self.selected_type, *self.type)
+        self.drop_type.pack()
+
+        
 
         self.create_widgets()
 
     def create_widgets(self):
+        for i in self.root.winfo_children():
+            i.destroy()
+        self.drop = tk.OptionMenu(root, self.selected_option, *self.correct)
         self.drop.pack()
 
         question_label = Label(self.root, text='question', height=4)
@@ -55,6 +68,9 @@ class QuestionApp:
 
         save_button = tk.Button(self.root, text = 'save data', command= self.save_data)
         save_button.pack()
+
+        view_table = tk.Button(self.root, text = 'table', command= self.view_table)
+        view_table.pack()
         
     def save_data(self):
         question = self.question.get("1.0", "end-1c")
@@ -63,9 +79,22 @@ class QuestionApp:
         c = self.alternative_c.get("1.0", "end-1c")
         d = self.alternative_d.get("1.0", "end-1c")
         e = self.alternative_e.get("1.0", "end-1c")
+        correct_alternative = self.selected_option.get()
+        type_question = self.selected_type.get()
         
-        command = f'insert into questions (question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e)'
+        command = 'insert into questions (question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct_option, type_question, date_created) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
+
+        
+        cur = con.cursor()
+        cur.execute(command,  (question, a,b,c,d,e, correct_alternative, type_question, datetime.now()))
+        con.commit()
+    
+    def view_table(self):
+        for i in self.root.winfo_children():
+            i.destroy()
+        create_question = tk.Button(self.root, text = 'create question', command= self.create_widgets)
+        create_question.pack()
 
     
 if __name__ == '__main__':
