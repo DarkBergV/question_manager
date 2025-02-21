@@ -6,7 +6,7 @@ from private_data import con
 def create_tables():
     commands = (
         
-        "alter table questions add date_created date"
+        "alter table questions add question_was_used boolean"
     )
 
     

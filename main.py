@@ -7,7 +7,7 @@ from datetime import datetime
 from private_data import API_KEY, con
 
 
-print(API_KEY["type"])
+
 
 
 class QuestionApp:
@@ -20,6 +20,11 @@ class QuestionApp:
         self.alternative_c = tk.StringVar()
         self.alternative_d = tk.StringVar()
         self.alternative_e = tk.StringVar()
+
+        self.used = ['yes' ,'no']
+        self.selected_used = tk.StringVar(self.root)
+        self.selected_used.set(self.used[0])
+
         self.correct = ["a", "b", "c", "d", "e"]
 
         self.selected_option = tk.StringVar(self.root)
@@ -32,7 +37,7 @@ class QuestionApp:
         self.drop_type = tk.OptionMenu(root, self.selected_type, *self.type)
         self.drop_type.pack()
 
-        self.create_widgets()
+        self.view_table()
 
     def create_widgets(self):
         for i in self.root.winfo_children():
@@ -45,6 +50,11 @@ class QuestionApp:
 
         self.drop = tk.OptionMenu(root, self.selected_option, *self.correct)
         self.drop.pack()
+
+        self.was_used = tk.OptionMenu(root, self.selected_used, *self.used)
+        self.was_used.pack()
+
+        
 
         question_label = Label(self.root, text="question", height=4)
         question_label.pack()
@@ -81,8 +91,9 @@ class QuestionApp:
         e = self.alternative_e.get("1.0", "end-1c")
         correct_alternative = self.selected_option.get()
         type_question = self.selected_type.get()
+        was_used = self.selected_used.get()
 
-        command = "insert into questions (question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct_option, type_question, date_created) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        command = "insert into questions (question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct_option, type_question, date_created, question_was_used) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
         cur = con.cursor()
         cur.execute(
@@ -97,6 +108,8 @@ class QuestionApp:
                 correct_alternative,
                 type_question,
                 datetime.now(),
+                was_used
+
             ),
         )
         con.commit()
@@ -168,7 +181,7 @@ class QuestionApp:
     def delete(self):
         pass
 
-    def update(self, id, question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type):
+    def update(self, id, question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type,was_used):
 
         question =question.get("1.0", "end-1c")
         a = alternative_a.get("1.0", "end-1c")
@@ -178,9 +191,10 @@ class QuestionApp:
         e = alternative_e.get("1.0", "end-1c")
         correct_alternative = correct.get()
         type_question = s_type.get()
+        question_was_used = was_used.get()
 
-        command = "update questions set question = %s, alternative_a = %s,alternative_b = %s,alternative_c = %s,alternative_d = %s,alternative_e = %s, correct_option = %s, type_question = %s, date_created = %s where question_id = %s"
-        print(command)
+        command = "update questions set question = %s, alternative_a = %s,alternative_b = %s,alternative_c = %s,alternative_d = %s,alternative_e = %s, correct_option = %s, type_question = %s, date_created = %s, question_was_used = %s where question_id = %s"
+      
         cur = con.cursor()
         cur.execute(
             command,
@@ -194,6 +208,7 @@ class QuestionApp:
                 correct_alternative,
                 type_question,
                 datetime.now(),
+                question_was_used,
                 id
             ),
         )
@@ -208,7 +223,7 @@ class QuestionApp:
         if theme == "all":
             cur.execute("SELECT * FROM questions")
             for table in cur.fetchall():
-                print(table[1])
+              
                 self.tree.insert(
                     "",
                     "end",
@@ -229,7 +244,7 @@ class QuestionApp:
         else:
             cur.execute("SELECT * FROM questions where type_question = %s", (theme,))
             for table in cur.fetchall():
-                print(table[1])
+               
                 self.tree.insert(
                     "",
                     "end",
@@ -252,7 +267,12 @@ class QuestionApp:
 
         item = self.tree.selection()
         if item:
-            value = self.tree.item(item, "values")
+            
+            cur = con.cursor()
+          
+            cur.execute('select question, alternative_a, alternative_b, alternative_c, alternative_d, alternative_e, correct_option, type_question, date_created, question_was_used  from questions where question_id = %s', (item[0],))
+
+            value = cur.fetchall()[0]
 
         for i in self.root.winfo_children():
             i.destroy()
@@ -266,15 +286,24 @@ class QuestionApp:
             "alternative e",
             "correct alternative",
         ]
+        if value[9]:
+            question_used = 'yes'
+
+        else:
+            question_used = 'no'
         s_type = tk.StringVar(self.root)
         s_type.set(value[7])
         drop_type = tk.OptionMenu(root, s_type, *self.type)
         drop_type.pack()
-
+        
         correct = tk.StringVar(self.root)
         correct.set(value[6])
         drop = tk.OptionMenu(root, correct, *self.correct)
         drop.pack()
+        used = tk.StringVar(self.root)
+        used.set(question_used)
+        was_used = tk.OptionMenu(root, used , *self.used)
+        was_used.pack()
 
         print(value)
         question_label = Label(self.root, text="question", height=4)
@@ -304,9 +333,13 @@ class QuestionApp:
         alternative_e.insert("1.0", value[5])
 
         update_button = tk.Button(
-            self.root, text="update question", command=lambda:self.update(item[0], question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type)
+            self.root, text="update question", command=lambda:self.update(item[0], question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type, used)
         )
         update_button.pack()
+
+        view_table = tk.Button(self.root, text="table", command=self.view_table)
+        view_table.pack()
+
 
 
 if __name__ == "__main__":
