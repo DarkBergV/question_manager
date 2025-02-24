@@ -175,10 +175,7 @@ class QuestionApp:
         filter_by_type = tk.OptionMenu(root, s_type, *type_q, command=self.table_view)
         filter_by_type.pack()
 
-        delete_button = tk.Button(
-            self.root, text="delete question", command=self.delete
-        )
-        delete_button.pack()
+       
 
 
     def update(self, id, question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type,was_used):
@@ -347,22 +344,26 @@ class QuestionApp:
         update_button.pack()
 
         delete_button = tk.Button(
-            self.root, text = 'delete question', command = lambda:self.delete(item[0], con)
+            self.root, text = 'delete question', command = lambda:self.delete_view(item[0], con)
         )
         delete_button.pack()
 
         view_table = tk.Button(self.root, text="table", command=self.view_table)
         view_table.pack()
 
-    def delete(self,id, con):
+    def delete_view(self,id, con):
         for i in self.root.winfo_children():
             i.destroy()
-        button_yes = tk.Button(self.root, text="yes", command=lambda: True)
+        button_yes = tk.Button(self.root, text="yes", command=lambda: self.delete_question(id, con))
         button_yes.pack()
         button_no = tk.Button(self.root, text = 'no', command=lambda: self.question_view(id))
         button_no.pack()
-        print(button_yes.ge)
         
+    def delete_question(self, id, con):
+        cur = con.cursor()
+        cur.execute('delete from questions where question_id = %s', (id,))
+        con.commit()
+        self.view_table()
 
 
 
