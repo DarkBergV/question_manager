@@ -6,7 +6,7 @@ from private_data import con
 def create_tables():
     commands = (
         
-        "alter table questions add question_was_used boolean"
+        "alter table questions add difficulty_level"
     )
 
     

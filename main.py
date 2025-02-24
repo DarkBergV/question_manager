@@ -10,7 +10,7 @@ from private_data import API_KEY, con
 
 
 
-
+import customtkinter
 
 class QuestionApp:
     def __init__(self, root):
@@ -262,6 +262,7 @@ class QuestionApp:
 
     def question_view(self, id):
         cur = con.cursor()
+        value = []
         try:
             item = self.tree.selection()
             
@@ -365,8 +366,41 @@ class QuestionApp:
         con.commit()
         self.view_table()
 
+class MyFrame(customtkinter.CTkScrollableFrame):
+    def __ini__(self, master, **kwargs):
+        super().__init__(master, kwargs)
+
+class QuestionManager:
+    def __init__(self, root):
+        self.root = root
+        self.root.grid_rowconfigure(0, weight = 1)
+        self.root.grid_columnconfigure(0, weight = 1)
+        self.title = self.root.title('test')
+
+        self.my_frame = MyFrame(master=self.root, width=600, height=500, fg_color="transparent")
+        self.my_frame.grid(row=0, column=0, sticky = "nsew")
+        
+        self.create_question()
+
+    def create_question(self):
+
+        
+
+        question = customtkinter.CTkTextbox(self.root, width=200, height=50)
+        question.insert("0.0", "question")
+        question.delete("0.0", "end")
+        question.place(relx = 0.5, rely = 0.5,anchor = "center")
+       
+        submit = customtkinter.CTkButton(self.root, text="submit", command=lambda:self.test(question.get("0.0", "end")))
+        submit.place(relx = 0.5, rely = 0.7,anchor = "center")
+    
+    def test(self, question_value):
+        print(question_value.strip())
 
 
+
+
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
