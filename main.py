@@ -1,7 +1,9 @@
 import requests
 import tkinter as tk
 import psycopg2
-from tkinter import ttk, Label
+from tkinter import ttk, Label, simpledialog, filedialog
+from tkinter import TclError
+from tkinter.simpledialog import Dialog
 from datetime import datetime
 
 from private_data import API_KEY, con
@@ -178,8 +180,6 @@ class QuestionApp:
         )
         delete_button.pack()
 
-    def delete(self):
-        pass
 
     def update(self, id, question, alternative_a,alternative_b,alternative_c,alternative_d,alternative_e, correct, s_type,was_used):
 
@@ -264,15 +264,24 @@ class QuestionApp:
         self.tree.bind("<ButtonRelease-1>", self.question_view)
 
     def question_view(self, id):
-
-        item = self.tree.selection()
-        if item:
+        cur = con.cursor()
+        try:
+            item = self.tree.selection()
             
-            cur = con.cursor()
-          
-            cur.execute('select question, alternative_a, alternative_b, alternative_c, alternative_d, alternative_e, correct_option, type_question, date_created, question_was_used  from questions where question_id = %s', (item[0],))
+            if item:
+                
+                
+            
+                cur.execute('select question, alternative_a, alternative_b, alternative_c, alternative_d, alternative_e, correct_option, type_question, date_created, question_was_used  from questions where question_id = %s', (item[0],))
 
-            value = cur.fetchall()[0]
+                value = cur.fetchall()[0]
+        except TclError:   
+            if id:
+                cur.execute('select question, alternative_a, alternative_b, alternative_c, alternative_d, alternative_e, correct_option, type_question, date_created, question_was_used  from questions where question_id = %s', (id,))
+                value = cur.fetchall()[0]
+                item = [id]
+                
+        
 
         for i in self.root.winfo_children():
             i.destroy()
@@ -337,8 +346,24 @@ class QuestionApp:
         )
         update_button.pack()
 
+        delete_button = tk.Button(
+            self.root, text = 'delete question', command = lambda:self.delete(item[0], con)
+        )
+        delete_button.pack()
+
         view_table = tk.Button(self.root, text="table", command=self.view_table)
         view_table.pack()
+
+    def delete(self,id, con):
+        for i in self.root.winfo_children():
+            i.destroy()
+        button_yes = tk.Button(self.root, text="yes", command=lambda: True)
+        button_yes.pack()
+        button_no = tk.Button(self.root, text = 'no', command=lambda: self.question_view(id))
+        button_no.pack()
+        print(button_yes.ge)
+        
+
 
 
 
