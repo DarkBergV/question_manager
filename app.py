@@ -3,6 +3,7 @@ import psycopg2
 from datetime import datetime
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from private_data import con
+import CTkTable
 
 
 
@@ -15,16 +16,21 @@ class QuestionManager(customtkinter.CTk):
         super().__init__()
         self.geometry('900x675')
         self.grid_rowconfigure(1, weight = 1)
-        self.grid_columnconfigure((2,3), weight = 0)
-        self.grid_rowconfigure((0,1,2), weight = 1)
+        self.grid_columnconfigure(2, weight = 5)
+        self.grid_rowconfigure(0, weight = 5)
         self.title = self.title('test')
+        
 
         self.my_frame = customtkinter.CTkScrollableFrame(self, width=250, height=300)
-        self.my_frame.grid( row = 1 , column = 2 , padx = 10, pady = 20,sticky = 'ew')
+        self.my_frame.grid( row = 0 , column = 1 , padx = 10, pady = 20,sticky = 'ew')
 
 
         self.test_frame = customtkinter.CTkScrollableFrame(self, width=250, height=300)
         self.test_frame.grid( row= 1 ,column = 1,  padx = 10, pady = 20, sticky = 'ew')
+
+        self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=300)
+        self.table_frame.grid(row = 0, column = 2, padx = 10, pady = 20, sticky = 'ew')
+        
         
         
         self.values = ["question", "alternative a", "alternative b", "alternative c", "alternative d", "alternative e"]
@@ -35,7 +41,7 @@ class QuestionManager(customtkinter.CTk):
         self.options = {"theme": ['microsoft', 'word', 'excel', 'email', 'internet'], "correct option":["a","b","c","d","e"], "question was used": ["yes", "no"]}
         self.option_table = ["type_question", "correct_option", "question_was_used"]
         self.option_boxes = []
-        self.create_question()
+        self.table_view()
 
     def create_question(self):
 
@@ -128,6 +134,29 @@ class QuestionManager(customtkinter.CTk):
     
         cur.execute(command, values)
         con.commit()
+
+    def table_view(self):
+        cur = con.cursor()
+        get_number_of_rows = "select count(*) from questions"
+        cur.execute(get_number_of_rows)
+
+        rows = cur.fetchall()
+
+        cur.execute("select question, correct_option, type_question, date_created, question_was_used from questions")
+        data = cur.fetchall()
+
+        headers = ["question", "correct alternative", "type of question", "date", "question was used"]
+        table = CTkTable.CTkTable(self.table_frame, row = rows[0][0], column=5, values=data)
+        table.add_row(["question", "correct alternative", "type of question", "date", "question was used"], 0)
+        table.grid(padx=20, pady=20)
+
+        filter_by_type = customtkinter.CTkButton(self)
+        
+
+
+
+        
+
         
 
 
