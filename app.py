@@ -27,6 +27,13 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         self.grid_rowconfigure(0, weight=5)
         self.grid_rowconfigure(1, weight=5)
         self.text_boxes = []
+        self.options = {
+            "theme": ["microsoft", "word", "excel", "email", "internet"],
+            "correct option": ["a", "b", "c", "d", "e"],
+            "question was used": ["yes", "no"],
+        }
+
+        self.option_boxes = []
 
     def question_page(self, id):
         cur = con.cursor()
@@ -72,6 +79,34 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         alternative_e = customtkinter.CTkTextbox(self.question_frame)
         alternative_e.grid()
         alternative_e.insert(0.0, text=values[6])
+
+        option_box_value = [values[7], values[8], values[10]]
+        print(option_box_value)
+        count = 0
+        for combo in self.options:
+            label = customtkinter.CTkLabel(
+                self.question_frame,
+                text=combo,
+                anchor="w",
+                text_color="white",
+                font=("Arial", 20),
+            )
+            
+            label.grid(padx=10, pady=20)
+            question_theme = customtkinter.CTkComboBox(
+                self.question_frame, values=self.options[combo], state="readonly"
+            )
+            
+            question_theme.set(option_box_value[count])
+            question_theme.grid(pady=20, sticky="ew")
+            self.option_boxes.append(question_theme)
+            count+=1
+
+
+        
+
+
+
 
        
             
@@ -207,6 +242,9 @@ class QuestionManager(customtkinter.CTk):
             "select question_id, question, correct_option, type_question, date_created, question_was_used from questions"
         )
         data = cur.fetchall()
+        
+
+        data = self.format_text(data)
 
         headers = [
             "id",
@@ -219,18 +257,12 @@ class QuestionManager(customtkinter.CTk):
         self.table = CTkTable.CTkTable(
             self.table_frame,
             row=rows[0][0],
-            column=5,
+            column=6,
             values=data,
             command=self.test_thing,
         )
         self.table.add_row(
-            [
-                "question",
-                "correct alternative",
-                "type of question",
-                "date",
-                "question was used",
-            ],
+            headers,
             0,
         )
         self.table.grid(padx=20, pady=20)
@@ -259,6 +291,29 @@ class QuestionManager(customtkinter.CTk):
         else:
             print("something else")
             self.question_window.focus()
+
+    def format_text(self, data):
+        for d in data:
+            new_d = list(d)
+            formating = d[1].split(" ")
+            count = 0
+            count_after = 8
+            
+            if len(formating)>=8:
+                for _ in formating:
+                    count+=1
+                    if count==count_after:
+                        formating.insert(count, "\n")
+                        count_after+=8
+                        
+                question = " ".join(formating)
+                new_d[1] = question
+                index = data.index(d)
+                data[index] = tuple(new_d)
+
+        return data
+           
+
 
 
 if __name__ == "__main__":
