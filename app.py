@@ -80,7 +80,9 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         alternative_e.grid()
         alternative_e.insert(0.0, text=values[6])
 
-        option_box_value = [values[7], values[8], values[10]]
+        question_text = {"question":question, "alternative_a":alternative_a, "alternative_b":alternative_b, "alternative_c": alternative_c, "alternative_d":alternative_d, "alternative_e":alternative_e}
+
+        option_box_value = [values[8], values[7], values[10]]
         print(option_box_value)
         count = 0
         for combo in self.options:
@@ -101,7 +103,29 @@ class TopLevelWindow(customtkinter.CTkToplevel):
             question_theme.grid(pady=20, sticky="ew")
             self.option_boxes.append(question_theme)
             count+=1
+        update = customtkinter.CTkButton(self.question_frame, text="Update", command= lambda:self.update_question(id, question_text))
+        update.grid(pady = 20, sticky="ew")
 
+    def update_question(self, id, question_text):
+        cur = con.cursor()
+        command = "UPDATE questions SET"
+        values = []
+        for i in question_text:
+            print(i)
+
+            command+= f" {i}"
+            command += " = %s,"
+            values.append(question_text[i].get("0.0", "end"))
+        
+        command = command[0:(len(command)-1)]
+        print(command)
+        command += " WHERE question_id = %s"
+        values.append(id)
+
+        cur.execute(command, values)
+        con.commit()
+
+            
 
         
 
