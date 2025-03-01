@@ -29,6 +29,7 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         }
 
         self.option_boxes = []
+        
 
     def question_page(self, id):
         self.create_frames()
@@ -134,6 +135,10 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         cur.execute(command, (id,))
         con.commit()
         self.destroy()
+        
+    
+        
+        
     def update_question(self, id, question_text):
         cur = con.cursor()
         command = "UPDATE questions SET"
@@ -187,7 +192,10 @@ class QuestionManager(customtkinter.CTk):
 
         # column configuration
         self.grid_columnconfigure(2, weight=5)
-
+       
+        
+        self.create_question()
+    def create_variables(self):
         self.values = [
             "question",
             "alternative a",
@@ -214,7 +222,6 @@ class QuestionManager(customtkinter.CTk):
         }
         self.option_table = ["type_question", "correct_option", "question_was_used"]
         self.option_boxes = []
-        self.create_question()
 
     def create_frames(self):
         self.my_frame = customtkinter.CTkScrollableFrame(self, width=250, height=900)
@@ -223,13 +230,16 @@ class QuestionManager(customtkinter.CTk):
         self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=900)
         self.table_frame.grid(row=0, column=2, padx=10, pady=20, sticky="ew")
 
-
+    def try_thing(self):
+        for i in self.winfo_children():
+            i.destroy()
+        self.create_question
 
     def create_question(self):
         for i in self.winfo_children():
             i.destroy()
         self.create_frames()
-
+        self.create_variables()
         # question
 
         for i, value in enumerate(self.values):
@@ -277,10 +287,12 @@ class QuestionManager(customtkinter.CTk):
         command = "INSERT INTO questions ("
         count = 0
         values = []
+        
         for box in question_value:
             command += f" {self.values_table[count]},"
-            values.append(box.get("1.0", "end").replace("\n", ""))
+            values.append(box.get(0.0, "end").replace("\n", ""))
             count += 1
+            print(values)
 
         for n, option in enumerate(option_value):
             command += f" {self.option_table[n]},"
@@ -352,11 +364,14 @@ class QuestionManager(customtkinter.CTk):
 
             self.question_window = TopLevelWindow(self)
             self.question_window.question_page(id)
+            
 
         else:
            
             self.question_window.focus()
 
+       
+        
     def format_text(self, data):
         for d in data:
             new_d = list(d)
