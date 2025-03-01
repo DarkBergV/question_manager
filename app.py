@@ -83,7 +83,7 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         question_text = {"question":question, "alternative_a":alternative_a, "alternative_b":alternative_b, "alternative_c": alternative_c, "alternative_d":alternative_d, "alternative_e":alternative_e}
 
         option_box_value = [values[8], values[7], values[10]]
-        print(option_box_value)
+       
         count = 0
         for combo in self.options:
             label = customtkinter.CTkLabel(
@@ -102,7 +102,12 @@ class TopLevelWindow(customtkinter.CTkToplevel):
             question_theme.set(option_box_value[count])
             question_theme.grid(pady=20, sticky="ew")
             self.option_boxes.append(question_theme)
+
             count+=1
+        for t in self.option_boxes:
+            print(t.get())
+            
+            
         update = customtkinter.CTkButton(self.question_frame, text="Update", command= lambda:self.update_question(id, question_text))
         update.grid(pady = 20, sticky="ew")
 
@@ -110,15 +115,26 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         cur = con.cursor()
         command = "UPDATE questions SET"
         values = []
+        
+            
+
+       
         for i in question_text:
-            print(i)
+        
 
             command+= f" {i}"
             command += " = %s,"
             values.append(question_text[i].get("0.0", "end"))
+
+        for t in self.option_boxes:
+            values.append(t.get())
+
+        command += " type_question = %s, correct_option = %s, question_was_used = %s, date_created = %s"
+
+        values.append(datetime.now())
         
-        command = command[0:(len(command)-1)]
-        print(command)
+        
+       
         command += " WHERE question_id = %s"
         values.append(id)
 
@@ -307,13 +323,13 @@ class QuestionManager(customtkinter.CTk):
 
       
         if self.question_window is None or not self.question_window.winfo_exists():
-            print("something")
+          
 
             self.question_window = TopLevelWindow(self)
             self.question_window.question_page(id)
 
         else:
-            print("something else")
+           
             self.question_window.focus()
 
     def format_text(self, data):
