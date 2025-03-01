@@ -20,12 +20,7 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         self.geometry("400x300")
         self.label = customtkinter.CTkLabel(self, text="question")
 
-        self.question_frame = customtkinter.CTkScrollableFrame(
-            self, width=400, height=300
-        )
-        self.question_frame.grid(row=0, column=1, padx=10, pady=20, sticky="ew")
-        self.grid_rowconfigure(0, weight=5)
-        self.grid_rowconfigure(1, weight=5)
+       
         self.text_boxes = []
         self.options = {
             "theme": ["microsoft", "word", "excel", "email", "internet"],
@@ -36,6 +31,7 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         self.option_boxes = []
 
     def question_page(self, id):
+        self.create_frames()
         cur = con.cursor()
         cur.execute("select * from questions where question_id = %s", (id,))
         values = cur.fetchall()
@@ -104,13 +100,40 @@ class TopLevelWindow(customtkinter.CTkToplevel):
             self.option_boxes.append(question_theme)
 
             count+=1
-        for t in self.option_boxes:
-            print(t.get())
+        
             
             
         update = customtkinter.CTkButton(self.question_frame, text="Update", command= lambda:self.update_question(id, question_text))
         update.grid(pady = 20, sticky="ew")
 
+        delete = customtkinter.CTkButton(self.question_frame, text="delete", command = lambda:self.delete(id))
+        delete.grid(padx = 20, sticky="ew")
+
+
+    def create_frames(self):
+        self.question_frame = customtkinter.CTkScrollableFrame(
+            self, width=400, height=300
+        )
+        self.question_frame.grid(row=0, column=1, padx=10, pady=20, sticky="ew")
+        self.grid_rowconfigure(0, weight=5)
+        self.grid_rowconfigure(1, weight=5)
+
+    def delete(self, id):
+        
+        for i in self.winfo_children():
+            i.destroy()
+        self.create_frames()
+        yes = customtkinter.CTkButton(self.question_frame, text="yes", command=lambda:self.delete_question(id))
+        yes.grid(pady=20, sticky="ew")
+        no = customtkinter.CTkButton(self.question_frame, text="no", command=lambda:self.question_page(id))
+        no.grid(pady=20, sticky="ew")
+    def delete_question(self,id):
+        command = "delete from questions where question_id = %s"
+        
+        cur = con.cursor()
+        cur.execute(command, (id,))
+        con.commit()
+        self.destroy()
     def update_question(self, id, question_text):
         cur = con.cursor()
         command = "UPDATE questions SET"
@@ -199,6 +222,8 @@ class QuestionManager(customtkinter.CTk):
 
         self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=900)
         self.table_frame.grid(row=0, column=2, padx=10, pady=20, sticky="ew")
+
+
 
     def create_question(self):
         for i in self.winfo_children():
