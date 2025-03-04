@@ -187,10 +187,11 @@ class QuestionManager(customtkinter.CTk):
         self.geometry("900x675")
 
         # row configuration
-        self.grid_rowconfigure(0, weight=0)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=2)
+        self.grid_rowconfigure(1, weight=5)
 
         # column configuration
+        self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(2, weight=5)
        
         
@@ -224,23 +225,122 @@ class QuestionManager(customtkinter.CTk):
         self.option_boxes = []
 
     def create_frames(self):
+        self.resizable(4,4)
         self.my_frame = customtkinter.CTkScrollableFrame(self, width=250, height=900)
-        self.my_frame.grid(row=0, column=1, padx=10, pady=20, sticky="ew")
+        self.my_frame.grid(row=0, column=0, padx=10, pady=20, sticky="ew", columnspan = 1)
+        self.my_frame.grid_forget()
 
-        self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=900)
-        self.table_frame.grid(row=0, column=2, padx=10, pady=20, sticky="ew")
+        self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=450)
+        self.table_frame.grid(row=0, column=2, padx=10, pady=20, sticky="new", columnspan = 3)
 
+
+        self.filters_frames = customtkinter.CTkFrame(self, width=700, height=200)
+        self.filters_frames.grid(row = 1, column=2,padx = 10, pady = 20, sticky = 'nsew', columnspan = 3, rowspan = 3)
+    
+    def filters(self):
+        filter_by_theme = customtkinter.CTkComboBox(self.filters_frames, values = ["all", "microsoft", "word", "excel", "email", "internet"])
+        filter_by_theme.grid(padx = 10, pady = 10)
+
+        search = customtkinter.CTkEntry(self.filters_frames)
+        search.grid(padx = 10,pady = 10)
+
+
+        was_used = customtkinter.CTkComboBox(self.filters_frames, values=["all", "yes", "no"])
+        was_used.grid(row = 0, column = 2, padx = 200)
+
+
+
+
+        sumbit = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="submit", command=lambda:self.filtered_table(filter_by_theme.get(),search.get(), was_used.get()))
+        sumbit.grid(row = 1, column = 2, padx = 200)
+    
+
+    def filtered_table(self,choice, search, was_used):
+        for i in self.table_frame.winfo_children():
+            i.destroy()
+        cur = con.cursor()
+        get_number_of_rows = "select count(*) from questions"
+        cur.execute(get_number_of_rows)
+
+        rows = cur.fetchall()
+        
+
+        command = "select question_id, question, correct_option, type_question, date_created, question_was_used from questions where"
+        values = []
+
+        if not choice == "all":
+            command += " type_question = %s AND"
+            values.append(choice)
+
+        if not search == "":
+            
+            command += f" question like '%{search}%'"
+            values.append(search)
+        values = tuple(values)
+        cur.execute(command)
+        data = cur.fetchall()
+        print(data)
+        data = self.format_text(data)
+
+        headers = [
+            "id",
+            "question",
+            "correct alternative",
+            "type of question",
+            "date",
+            "question was used",
+        ]
+        self.table = CTkTable.CTkTable(
+            self.table_frame,
+            row=rows[0][0],
+            column=6,
+            values=data,
+            command=self.test_thing,
+        )
+        self.table.add_row(
+            headers,
+            0,
+        )
+        self.table.grid(padx=20, pady=20)
+        self.question_window = None
+
+
+        
+
+        
+
+        
+        print(choice)
+        
+        print(type(search))
+        print(was_used)
     def try_thing(self):
         for i in self.winfo_children():
             i.destroy()
         self.create_question
+
+    def minimize_create_question(self):
+        self.my_frame.grid_forget()
+        self.maximaze.grid()
+        
+
+    def maximize_create_question(self):
+        self.my_frame.grid(row=0, column=0, padx=10, pady=20, sticky="ew")
+        self.maximaze.grid_forget()
+        
 
     def create_question(self):
         for i in self.winfo_children():
             i.destroy()
         self.create_frames()
         self.create_variables()
+        self.filters()
         # question
+        self.maximaze = customtkinter.CTkButton(self, width=10, height=20, text="create question", command = self.maximize_create_question)
+        self.maximaze.grid(row = 3, column=1, sticky= "s")
+
+        minimize = customtkinter.CTkButton(self.my_frame, width=10, height=20, text="-", command = self.minimize_create_question )
+        minimize.grid(row = 0, column = 1)
 
         for i, value in enumerate(self.values):
             label = customtkinter.CTkLabel(
@@ -308,18 +408,32 @@ class QuestionManager(customtkinter.CTk):
         con.commit()
         self.create_question()
 
-    def table_view(self):
+    def table_view(self, theme = "all"):
+        for i in self.table_frame.winfo_children():
+            i.destroy()
         cur = con.cursor()
-        get_number_of_rows = "select count(*) from questions"
-        cur.execute(get_number_of_rows)
-
-        rows = cur.fetchall()
-
-        cur.execute(
-            "select question_id, question, correct_option, type_question, date_created, question_was_used from questions"
-        )
-        data = cur.fetchall()
         
+
+        if theme == "all":
+            cur.execute(
+            "select question_id, question, correct_option, type_question, date_created, question_was_used from questions"
+            )
+            data = cur.fetchall()
+
+            get_number_of_rows = "select count(*) from questions"
+            cur.execute(get_number_of_rows)
+
+            rows = cur.fetchall()
+        
+        else:
+            cur.execute("select question_id, question, correct_option, type_question, date_created, question_was_used from questions where type_question = %s", (theme,))
+            data = cur.fetchall()
+
+            get_number_of_rows = "select count(*) from questions where type_question = %s"
+            cur.execute(get_number_of_rows, (theme,))
+
+            rows = cur.fetchall()
+            
 
         data = self.format_text(data)
 

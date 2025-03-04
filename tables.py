@@ -6,7 +6,7 @@ from private_data import con
 def create_tables():
     commands = (
         
-        "alter table questions add difficulty_level"
+        "select * from questions where question like '%sd%'"
     )
 
     
@@ -14,7 +14,8 @@ def create_tables():
     cur = con.cursor()
     
     cur.execute(commands)
-    con.commit()
+
+    print(cur.fetchall())
 
 def main():
     create_tables()
