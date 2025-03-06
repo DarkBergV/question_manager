@@ -113,11 +113,11 @@ class TopLevelWindow(customtkinter.CTkToplevel):
 
     def create_frames(self):
         self.question_frame = customtkinter.CTkScrollableFrame(
-            self, width=400, height=300
+            self, width=350, height=300
         )
-        self.question_frame.grid(row=0, column=1, padx=10, pady=20, sticky="ew")
-        self.grid_rowconfigure(0, weight=5)
-        self.grid_rowconfigure(1, weight=5)
+        self.question_frame.grid(row=2, column=2, padx=10, pady=20)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=0)
 
     def delete(self, id):
         
@@ -188,7 +188,7 @@ class QuestionManager(customtkinter.CTk):
 
         # row configuration
         self.grid_rowconfigure(0, weight=2)
-        self.grid_rowconfigure(1, weight=5)
+        self.grid_rowconfigure(1, weight=0)
 
         # column configuration
         self.grid_columnconfigure(0, weight=0)
@@ -227,15 +227,19 @@ class QuestionManager(customtkinter.CTk):
     def create_frames(self):
         self.resizable(4,4)
         self.my_frame = customtkinter.CTkScrollableFrame(self, width=250, height=900)
-        self.my_frame.grid(row=0, column=0, padx=10, pady=20, sticky="ew", columnspan = 1)
+        self.my_frame.grid(row=0, column=0, padx=10, pady=20, sticky="nsew", columnspan = 1)
         self.my_frame.grid_forget()
 
         self.table_frame = customtkinter.CTkScrollableFrame(self, width=700, height=450)
-        self.table_frame.grid(row=0, column=2, padx=10, pady=20, sticky="new", columnspan = 3)
+        self.table_frame.grid(row=0, column=2, padx=20, pady=10, sticky="new", columnspan = 3)
 
 
         self.filters_frames = customtkinter.CTkFrame(self, width=700, height=200)
-        self.filters_frames.grid(row = 1, column=2,padx = 10, pady = 20, sticky = 'nsew', columnspan = 3, rowspan = 3)
+        self.filters_frames.grid(row = 1, column=2,padx = 20, pady = 10, sticky = 'nsew', columnspan = 2, rowspan = 2)
+
+
+        self.menu_frames = customtkinter.CTkFrame(self, width = 200, height=200)
+        self.menu_frames.grid(row = 0, column = 0)
     
     def filters(self):
         filter_by_theme = customtkinter.CTkComboBox(self.filters_frames, values = ["all", "microsoft", "word", "excel", "email", "internet"])
@@ -256,6 +260,7 @@ class QuestionManager(customtkinter.CTk):
     
 
     def filtered_table(self,choice, search, was_used):
+        print(choice)
         for i in self.table_frame.winfo_children():
             i.destroy()
         cur = con.cursor()
@@ -274,10 +279,20 @@ class QuestionManager(customtkinter.CTk):
 
         if not search == "":
             
-            command += f" question like '%{search}%'"
+            command += " question like %s AND"
+            search = '%%%s%%' % search
             values.append(search)
+
+        if not was_used == "all":
+            command += " question_was_used = %s"
+            values.append(was_used)
+     
+        if command[len(command)-3:len(command)] == "AND":
+            command = command[0:len(command) - 4]
+
+        print(command)
         values = tuple(values)
-        cur.execute(command)
+        cur.execute(command, values)
         data = cur.fetchall()
         print(data)
         data = self.format_text(data)
@@ -321,12 +336,12 @@ class QuestionManager(customtkinter.CTk):
 
     def minimize_create_question(self):
         self.my_frame.grid_forget()
-        self.maximaze.grid()
-        
+        self.menu_frames.grid(row = 0, column = 0)
 
     def maximize_create_question(self):
         self.my_frame.grid(row=0, column=0, padx=10, pady=20, sticky="ew")
-        self.maximaze.grid_forget()
+        
+        self.menu_frames.grid_forget()
         
 
     def create_question(self):
@@ -336,8 +351,8 @@ class QuestionManager(customtkinter.CTk):
         self.create_variables()
         self.filters()
         # question
-        self.maximaze = customtkinter.CTkButton(self, width=10, height=20, text="create question", command = self.maximize_create_question)
-        self.maximaze.grid(row = 3, column=1, sticky= "s")
+        self.maximaze = customtkinter.CTkButton(self.menu_frames, width=10, height=20, text="create question",fg_color="#3a3a3a", hover_color="#454545", command = self.maximize_create_question)
+        self.maximaze.grid(row = 2, column=1)
 
         minimize = customtkinter.CTkButton(self.my_frame, width=10, height=20, text="-", command = self.minimize_create_question )
         minimize.grid(row = 0, column = 1)
@@ -491,14 +506,14 @@ class QuestionManager(customtkinter.CTk):
             new_d = list(d)
             formating = d[1].split(" ")
             count = 0
-            count_after = 8
+            count_after = 15
             
-            if len(formating)>=8:
+            if len(formating)>=15:
                 for _ in formating:
                     count+=1
                     if count==count_after:
                         formating.insert(count, "\n")
-                        count_after+=8
+                        count_after+=15
                         
                 question = " ".join(formating)
                 new_d[1] = question
