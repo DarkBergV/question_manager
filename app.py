@@ -242,25 +242,43 @@ class QuestionManager(customtkinter.CTk):
         self.menu_frames.grid(row = 0, column = 0)
     
     def filters(self):
-        filter_by_theme = customtkinter.CTkComboBox(self.filters_frames, values = ["all", "microsoft", "word", "excel", "email", "internet"])
-        filter_by_theme.grid(padx = 10, pady = 10)
+        self.filter_by_theme = customtkinter.CTkComboBox(self.filters_frames, values = ["all", "microsoft", "word", "excel", "email", "internet"])
+        
+        self.filter_by_theme.grid(padx = 10, pady = 10)
 
-        search = customtkinter.CTkEntry(self.filters_frames)
-        search.grid(padx = 10,pady = 10)
-
-
-        was_used = customtkinter.CTkComboBox(self.filters_frames, values=["all", "yes", "no"])
-        was_used.grid(row = 0, column = 2, padx = 200)
+        self.search = customtkinter.CTkEntry(self.filters_frames)
+        self.search.grid(padx = 10)
 
 
+        self.was_used = customtkinter.CTkComboBox(self.filters_frames, values=["all", "yes", "no"])
+        self.was_used.grid(row = 0, column = 2, padx =20)
 
 
-        sumbit = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="submit", command=lambda:self.filtered_table(filter_by_theme.get(),search.get(), was_used.get()))
-        sumbit.grid(row = 1, column = 2, padx = 200)
-    
+        self.order_by = customtkinter.CTkComboBox(self.filters_frames, values=["id",
+            "question",
+            "correct alternative",
+            "type of question",
+            "date",
+            "question was used", "NONE"])
+        self.order_by.grid(row = 0, column = 3, padx = 10)
 
-    def filtered_table(self,choice, search, was_used):
-        print(choice)
+        sumbit = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="submit", command=lambda:self.filtered_table(self.filter_by_theme.get(),self.search.get(), self.was_used.get(), self.order_by.get()))
+
+        
+        sumbit.grid(row = 1, column = 2, padx = 10)
+
+        clear = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="clear filters", command = lambda:(self.filter_by_theme.set("all"), self.search.delete("0","end"), self.was_used.set("all") ))
+        clear.grid(row = 1, column = 3)
+
+
+    def filtered_table(self,choice, search, was_used, order):
+        order_by = {"id":"question_id",
+            "question":"question",
+            "correct alternative":"correct_option",
+            "type of question":"type_question",
+            "date":"date_created",
+            "question was used":"question_was_used", "NONE":"NONE"}
+        
         for i in self.table_frame.winfo_children():
             i.destroy()
         cur = con.cursor()
@@ -286,9 +304,22 @@ class QuestionManager(customtkinter.CTk):
         if not was_used == "all":
             command += " question_was_used = %s"
             values.append(was_used)
-     
+
+        if was_used == "all" and search == "" and choice == "all":
+            command = "select question_id, question, correct_option, type_question, date_created, question_was_used from questions"
+
+        
+            
         if command[len(command)-3:len(command)] == "AND":
             command = command[0:len(command) - 4]
+
+        if order != "NONE":
+            print(order)
+            
+
+            order = str(order_by[order])
+            command += f" ORDER BY {order}"
+            values.append(order)
 
         print(command)
         values = tuple(values)
@@ -467,9 +498,11 @@ class QuestionManager(customtkinter.CTk):
             values=data,
             command=self.test_thing,
         )
+        
         self.table.add_row(
             headers,
             0,
+
         )
         self.table.grid(padx=20, pady=20)
         self.question_window = None
@@ -484,20 +517,26 @@ class QuestionManager(customtkinter.CTk):
     def test_thing(self, i):
 
         self.table.get_row(i["row"])
+
         id = self.table.get_row(i["row"])
         id = id[0]
+        if not id == "id":
+            print(id)
 
-      
-        if self.question_window is None or not self.question_window.winfo_exists():
-          
-
-            self.question_window = TopLevelWindow(self)
-            self.question_window.question_page(id)
+        
+            if self.question_window is None or not self.question_window.winfo_exists():
             
+                
+                self.question_window = TopLevelWindow(self)
+                self.question_window.question_page(id)
+                
 
-        else:
-           
-            self.question_window.focus()
+            else:
+                
+                self.question_window.focus()
+               
+        else :
+            pass
 
        
         
