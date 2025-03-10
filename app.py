@@ -244,25 +244,32 @@ class QuestionManager(customtkinter.CTk):
         self.menu_frames.grid(row = 0, column = 0)
     
     def filters(self):
+        self.label_by_theme = customtkinter.CTkLabel(self.filters_frames, width=10, height=10, text="filter by theme:")
+        self.label_by_theme.grid(row = 0, column = 0, padx = 5, pady = 20)
         self.filter_by_theme = customtkinter.CTkComboBox(self.filters_frames, values = ["all", "microsoft", "word", "excel", "email", "internet"])
         
-        self.filter_by_theme.grid(padx = 10, pady = 10)
+        self.filter_by_theme.grid(row = 0, column = 1, pady = 10)
 
+        search_label = customtkinter.CTkLabel(self.filters_frames, width=10, height=10, text="search:")
+        search_label.grid(row = 1, column = 0, pady = 20)
         self.search = customtkinter.CTkEntry(self.filters_frames)
-        self.search.grid(padx = 10)
+        self.search.grid(row = 1, column = 1, padx = 10 , pady = 10)
 
 
+        was_used_label = customtkinter.CTkLabel(self.filters_frames, width=10, height=10, text="was used:")
+        was_used_label.grid(row = 0, column = 2, padx = 10)
         self.was_used = customtkinter.CTkComboBox(self.filters_frames, values=["all", "yes", "no"])
-        self.was_used.grid(row = 0, column = 2, padx =20)
+        self.was_used.grid(row = 0, column = 3, padx =10)
 
-
+        sort_label = customtkinter.CTkLabel(self.filters_frames, width=10, height=10, text="sort by:")
+        sort_label.grid(row = 0, column = 4)
         self.order_by = customtkinter.CTkComboBox(self.filters_frames, values=["id",
             "question",
             "correct alternative",
             "type of question",
             "date",
             "question was used", "NONE"])
-        self.order_by.grid(row = 0, column = 3, padx = 10)
+        self.order_by.grid(row = 0, column = 5, padx = 10)
 
         sumbit = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="submit", command=lambda:self.filtered_table(self.filter_by_theme.get(),self.search.get(), self.was_used.get(), self.order_by.get()))
 
@@ -526,7 +533,7 @@ class QuestionManager(customtkinter.CTk):
             print(id)
 
         
-            if self.question_window is None or not self.question_window.winfo_exists() or self.question_window.winfo_exists():
+            if self.question_window is None or not self.question_window.winfo_exists():
             
                 
                 self.question_window = TopLevelWindow(self)
