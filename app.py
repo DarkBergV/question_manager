@@ -17,8 +17,11 @@ class TopLevelWindow(customtkinter.CTkToplevel):
 
         super().__init__(*args, fg_color=fg_color, **kwargs)
 
-        self.geometry("400x300")
+        self.geometry("400x400")
         self.label = customtkinter.CTkLabel(self, text="question")
+        self.resizable(0,0)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=0)
 
        
         self.text_boxes = []
@@ -115,9 +118,8 @@ class TopLevelWindow(customtkinter.CTkToplevel):
         self.question_frame = customtkinter.CTkScrollableFrame(
             self, width=350, height=300
         )
-        self.question_frame.grid(row=2, column=2, padx=10, pady=20)
-        self.grid_rowconfigure(0, weight=0)
-        self.grid_rowconfigure(1, weight=0)
+        self.question_frame.grid(row=0, column=0, padx=10, pady=20, sticky = "nsew")
+        
 
     def delete(self, id):
         
@@ -524,7 +526,7 @@ class QuestionManager(customtkinter.CTk):
             print(id)
 
         
-            if self.question_window is None or not self.question_window.winfo_exists():
+            if self.question_window is None or not self.question_window.winfo_exists() or self.question_window.winfo_exists():
             
                 
                 self.question_window = TopLevelWindow(self)
