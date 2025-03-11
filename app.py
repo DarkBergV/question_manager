@@ -86,6 +86,7 @@ class TopLevelWindow(customtkinter.CTkToplevel):
        
         count = 0
         for combo in self.options:
+            
             label = customtkinter.CTkLabel(
                 self.question_frame,
                 text=combo,
@@ -98,8 +99,16 @@ class TopLevelWindow(customtkinter.CTkToplevel):
             question_theme = customtkinter.CTkComboBox(
                 self.question_frame, values=self.options[combo], state="readonly"
             )
-            
-            question_theme.set(option_box_value[count])
+            if not combo == "question was used":
+                question_theme.set(option_box_value[count])
+            else:
+                if option_box_value[count] == True:
+                    
+                    question_theme.set("yes")
+                else:
+                   
+                    
+                    question_theme.set("no")
             question_theme.grid(pady=20, sticky="ew")
             self.option_boxes.append(question_theme)
 
@@ -279,6 +288,7 @@ class QuestionManager(customtkinter.CTk):
         clear = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="clear filters", command = lambda:(self.filter_by_theme.set("all"), self.search.delete("0","end"), self.was_used.set("all") ))
         clear.grid(row = 1, column = 3)
 
+    
 
     def filtered_table(self,choice, search, was_used, order):
         order_by = {"id":"question_id",
@@ -323,18 +333,19 @@ class QuestionManager(customtkinter.CTk):
             command = command[0:len(command) - 4]
 
         if order != "NONE":
-            print(order)
+           
             
 
-            order = str(order_by[order])
+            order = f"{order_by[order]}"
+            print(order)
             command += f" ORDER BY {order}"
-            values.append(order)
+        
 
         print(command)
         values = tuple(values)
         cur.execute(command, values)
         data = cur.fetchall()
-        print(data)
+       
         data = self.format_text(data)
 
         headers = [
@@ -365,10 +376,7 @@ class QuestionManager(customtkinter.CTk):
         
 
         
-        print(choice)
-        
-        print(type(search))
-        print(was_used)
+      
     def try_thing(self):
         for i in self.winfo_children():
             i.destroy()
@@ -447,7 +455,7 @@ class QuestionManager(customtkinter.CTk):
             command += f" {self.values_table[count]},"
             values.append(box.get(0.0, "end").replace("\n", ""))
             count += 1
-            print(values)
+        
 
         for n, option in enumerate(option_value):
             command += f" {self.option_table[n]},"
@@ -491,7 +499,7 @@ class QuestionManager(customtkinter.CTk):
             
 
         data = self.format_text(data)
-
+ 
         headers = [
             "id",
             "question",
@@ -530,8 +538,7 @@ class QuestionManager(customtkinter.CTk):
         id = self.table.get_row(i["row"])
         id = id[0]
         if not id == "id":
-            print(id)
-
+          
         
             if self.question_window is None or not self.question_window.winfo_exists():
             
@@ -550,12 +557,18 @@ class QuestionManager(customtkinter.CTk):
        
         
     def format_text(self, data):
+       
         for d in data:
             new_d = list(d)
             formating = d[1].split(" ")
             count = 0
             count_after = 15
-            
+
+            if d[5] == False:
+                new_d[5] = "No"
+            if d[5] == True:
+                new_d[5] = "Yes"
+          
             if len(formating)>=15:
                 for _ in formating:
                     count+=1
@@ -563,11 +576,11 @@ class QuestionManager(customtkinter.CTk):
                         formating.insert(count, "\n")
                         count_after+=15
                         
-                question = " ".join(formating)
-                new_d[1] = question
-                index = data.index(d)
-                data[index] = tuple(new_d)
-
+            question = " ".join(formating)
+            new_d[1] = question
+            index = data.index(d)
+            data[index] = tuple(new_d)
+        
         return data
            
 
