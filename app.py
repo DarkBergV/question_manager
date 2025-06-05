@@ -288,7 +288,7 @@ class QuestionManager(customtkinter.CTk):
         clear = customtkinter.CTkButton(self.filters_frames, width=20,height=20, text="clear filters", command = lambda:(self.filter_by_theme.set("all"), self.search.delete("0","end"), self.was_used.set("all") ))
         clear.grid(row = 1, column = 3)
 
-    
+ 
 
     def filtered_table(self,choice, search, was_used, order):
         order_by = {"id":"question_id",
@@ -337,11 +337,11 @@ class QuestionManager(customtkinter.CTk):
             
 
             order = f"{order_by[order]}"
-            print(order)
+           
             command += f" ORDER BY {order}"
         
 
-        print(command)
+      
         values = tuple(values)
         cur.execute(command, values)
         data = cur.fetchall()
